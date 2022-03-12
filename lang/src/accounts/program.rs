@@ -1,11 +1,11 @@
 //! Type validating that the account is the given Program
-
 use crate::error::ErrorCode;
-use crate::*;
+use crate::{
+    AccountDeserialize, Accounts, AccountsExit, Id, Key, Result, ToAccountInfos, ToAccountMetas,
+};
 use solana_program::account_info::AccountInfo;
 use solana_program::bpf_loader_upgradeable::{self, UpgradeableLoaderState};
 use solana_program::instruction::AccountMeta;
-use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -85,7 +85,7 @@ impl<'a, T: Id + Clone> Program<'a, T> {
 
     /// Deserializes the given `info` into a `Program`.
     #[inline(never)]
-    pub fn try_from(info: &AccountInfo<'a>) -> Result<Program<'a, T>, ProgramError> {
+    pub fn try_from(info: &AccountInfo<'a>) -> Result<Program<'a, T>> {
         if info.key != &T::id() {
             return Err(ErrorCode::InvalidProgramId.into());
         }
@@ -137,7 +137,7 @@ where
         accounts: &mut &[AccountInfo<'info>],
         _ix_data: &[u8],
         _bumps: &mut BTreeMap<String, u8>,
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self> {
         if accounts.is_empty() {
             return Err(ErrorCode::AccountNotEnoughKeys.into());
         }
@@ -179,3 +179,9 @@ impl<'info, T: Id + Clone> Deref for Program<'info, T> {
 }
 
 impl<'info, T: AccountDeserialize + Id + Clone> AccountsExit<'info> for Program<'info, T> {}
+
+impl<'info, T: AccountDeserialize + Id + Clone> Key for Program<'info, T> {
+    fn key(&self) -> Pubkey {
+        *self.info.key
+    }
+}

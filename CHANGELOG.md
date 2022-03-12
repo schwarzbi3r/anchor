@@ -11,9 +11,57 @@ incremented for features.
 
 ## [Unreleased]
 
+### Features
+
+* cli: Add `anchor clean` command that's the same as `cargo clean` but preserves keypairs inside `target/deploy` ([#1470](https://github.com/project-serum/anchor/issues/1470)).
+* lang: Add new `AccountSysvarMismatch` error code and test cases for sysvars ([#1535](https://github.com/project-serum/anchor/pull/1535)).
+* lang: Replace `std::io::Cursor` with a custom `Write` impl that uses the Solana mem syscalls ([#1589](https://github.com/project-serum/anchor/pull/1589)).
+* spl: Add support for revoke instruction ([#1493](https://github.com/project-serum/anchor/pull/1493)).
+* ts: Add provider parameter to `Spl.token` factory method ([#1597](https://github.com/project-serum/anchor/pull/1597)).
+
+### Fixes
+
+* ts: Fix the loss of strict typing using the `methods` namespace on builder functions ([#1539](https://github.com/project-serum/anchor/pull/1539)).
+* spl: Update `spl/governance` to use new errors ([#1582](https://github.com/project-serum/anchor/pull/1582)).
+* client: Fix `Cluster`'s `FromStr` implementation ([#1362](https://github.com/project-serum/anchor/pull/1362)).
+* lang: implement `Key` for `Pubkey` again, so `associated_token::*` constraints can use pubkey targets again ([#1601](https://github.com/project-serum/anchor/pull/1601)).
+
+### Breaking
+
+* ts: Mark `transaction`, `instruction`, `simulate` and `rpc` program namespaces as deprecated in favor of `methods` ([#1539](https://github.com/project-serum/anchor/pull/1539)).
+* ts: No longer allow manual setting of globally resolvable program public keys in `methods#accounts()`. ([#1548][https://github.com/project-serum/anchor/pull/1548])
+* lang: Remove space calculation using [`#[derive(Default)]`] (https://github.com/project-serum/anchor/pull/1519).
+
+## [0.22.1] - 2022-02-28
+
+### Fixes
+
+* cli: Fix rust template ([#1488](https://github.com/project-serum/anchor/pull/1488)).
+* lang: Handle array sizes with variable sizes in events and array size casting in IDL parsing ([#1485](https://github.com/project-serum/anchor/pull/1485))
+
+## [0.22.0] - 2022-02-20
+
+### Features
+
+* lang: Add check that declared id == program id ([#1451](https://github.com/project-serum/anchor/pull/1451)).
+* ts: Added float types support ([#1425](https://github.com/project-serum/anchor/pull/1425)).
+* cli: Add `--skip-lint` option to disable check linting introduced in ([#1452](https://github.com/project-serum/anchor/pull/1452)) for rapid prototyping ([#1482](https://github.com/project-serum/anchor/pull/1482)).
+
+### Fixes
+
+* ts: Allow nullable types for `Option<T>` mapped types ([#1428](https://github.com/project-serum/anchor/pull/1428)).
+
 ### Breaking
 
 * lang: Enforce that the payer for an init-ed account be marked `mut` ([#1271](https://github.com/project-serum/anchor/pull/1271)).
+* lang: All error-related code is now in the error module ([#1426](https://github.com/project-serum/anchor/pull/1426)).
+* lang: Require doc comments when using AccountInfo or UncheckedAccount types ([#1452](https://github.com/project-serum/anchor/pull/1452)).
+* lang: add [`error!`](https://docs.rs/anchor-lang/latest/anchor_lang/prelude/macro.error.html) and [`err!`](https://docs.rs/anchor-lang/latest/anchor_lang/prelude/macro.err.html) macro and `Result` type ([#1462](https://github.com/project-serum/anchor/pull/1462)).
+This change will break most programs. Do the following to upgrade:
+     * change all `ProgramResult`'s to `Result<()>`
+     * change `#[error]` to `#[error_code]`
+     * change all `Err(MyError::SomeError.into())` to `Err(error!(MyError::SomeError))` and all `Err(ProgramError::SomeProgramError)` to `Err(ProgramError::SomeProgramError.into())` or `Err(Error::from(ProgramError::SomeProgramError).with_source(source!()))` to provide file and line source of the error (`with_source` is most useful with `ProgramError`s. `error!` already adds source information for custom and anchor internal errors).
+     * change all `solana_program::program::invoke()` to `solana_program::program::invoke().map_err(Into::into)` and `solana_program::program::invoke_signed()` to `solana_program::program::invoke_signed().map_err(Into::into)`
 
 ## [0.21.0] - 2022-02-07
 
